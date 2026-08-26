@@ -1,7 +1,7 @@
 /* Service worker - makes the shopping list work with no internet.
    Bump CACHE_NAME whenever you upload a new version of the app. */
 
-const CACHE_NAME = 'chris-shopping-v2';
+const CACHE_NAME = 'chris-shopping-v4';
 
 /* All these apps sit on the one address (synergies-now.github.io), and the
    browser's cache store is shared across the whole address - not per folder.

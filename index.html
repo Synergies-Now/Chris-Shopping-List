@@ -90,7 +90,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 13px 8px 13px 14px;
+    padding: 12px 8px 12px 15px;
     border-bottom: 1px solid var(--border);
     user-select: none;
     transition: opacity 0.15s ease, transform 0.15s ease;
@@ -119,12 +119,12 @@
   }
   .item.checked .box { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: transparent; }
   .item-text { flex: 1; min-width: 0; }
-  .item-name { font-size: 1rem; font-weight: 600; }
-  .item-note { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+  .item-name { font-size: 0.945rem; font-weight: 600; line-height: 1.3; }
+  .item-note { font-size: 0.755rem; color: var(--muted); margin-top: 2px; line-height: 1.3; }
   .del-btn {
     flex: 0 0 auto;
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     border: none;
     background: none;
     color: var(--muted);
@@ -254,13 +254,46 @@
   @media (prefers-reduced-motion: reduce) {
     #syncNote { transition: none; }
   }
+
+  /* Share button, tucked beside the heading. Hidden until something is
+     actually on the list, so it never invites an empty share. */
+  .head-row { display: flex; align-items: center; gap: 12px; }
+  .head-text { flex: 1; min-width: 0; }
+  .share-btn {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .share-btn svg { width: 17px; height: 17px; display: block; }
+  .share-btn:active { color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body>
 
 <header>
-  <h1 id="pageTitle">Chris's Shopping List 🌿</h1>
-  <div class="subtitle" id="pageSubtitle">Tick what you need, then go shopping</div>
+  <div class="head-row">
+    <div class="head-text">
+      <h1 id="pageTitle">Chris's Shopping List 🌿</h1>
+      <div class="subtitle" id="pageSubtitle">Tick what you need, then go shopping</div>
+    </div>
+    <button class="share-btn" id="shareBtn" type="button" aria-label="Send this list to someone" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 16V4"></path>
+        <path d="M7 9l5-5 5 5"></path>
+        <path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"></path>
+      </svg>
+    </button>
+  </div>
 </header>
 
 <noscript>
@@ -326,13 +359,139 @@ const STARTER = [
 
 /* ---- Auto-categorisation keywords (NZ-aware) ---- */
 const KEYWORDS = {
-  "Produce": ["apple","banana","orange","kiwifruit","feijoa","tamarillo","avocado","tomato","potato","kumara","carrot","broccoli","cauliflower","cabbage","lettuce","spinach","silverbeet","puha","capsicum","courgette","zucchini","pumpkin","onion","garlic","ginger","mushroom","cucumber","celery","leek","green bean","sweetcorn","lemon","lime","grape","strawberr","blueberr","raspberr","peach","pear","plum","mandarin","melon","mango","pineapple","parsley","coriander","basil","mint","chilli","salad","kale","rocket","beetroot","radish","asparagus","herb","greens","sprout","watercress","avo","veges","veggies","vegetables","fruit"],
-  "Meat & Seafood": ["chicken","beef","mince","steak","lamb","pork","bacon","ham","sausage","salami","turkey","venison","fish","salmon","snapper","terakihi","hoki","prawn","shrimp","mussel","squid","calamari","chorizo","schnitzel","drumstick","thigh","meat","seafood","tuna steak"],
-  "Dairy & Chilled": ["milk","cheese","yoghurt","yogurt","butter","cream","egg","feta","halloumi","mozzarella","parmesan","custard","margarine","hummus","tofu","dip"],
-  "Pantry & Baking": ["rice","pasta","noodle","flour","sugar","oat","weet-bix","weetbix","cereal","muesli","bread","wrap","tortilla","bun","bagel","chickpea","lentil","tomato paste","sauce","ketchup","mayo","mustard","vinegar","oil","salt","pepper","spice","cumin","cinnamon","curry","stock","honey","jam","marmite","vegemite","peanut butter","cocoa","baking powder","baking soda","yeast","vanilla","choc chip","chocolate chip","protein powder","almond","walnut","cashew","nuts","seed","tahini","coconut","syrup","tea","coffee","sultana","raisin","breadcrumb","couscous","quinoa","soup","baked bean","tinned","canned"],
-  "Frozen": ["frozen","ice cream","icecream","ice block"],
-  "Snacks & Drinks": ["chocolate","chips","crisps","biscuit","cookie","lolly","lollies","candy","whittaker","l&p","coke","soft drink","fizzy","juice","water","beer","wine","cider","energy drink","powerade","gum","popcorn","cracker","muesli bar","protein bar","snack","chippies"],
-  "Household": ["toilet paper","paper towel","dishwash","detergent","washing powder","soap","shampoo","conditioner","toothpaste","toothbrush","deodorant","sunscreen","cleaner","bin liner","rubbish bag","tissue","wipes","sponge","glad wrap","tin foil","batteries","razor","floss","laundry","bleach","sanitiser","sanitizer","dishwasher tablet"]
+  "Produce": [
+    "apple", "banana", "orange", "kiwifruit", "feijoa", "tamarillo",
+    "avocado", "tomato", "potato", "kumara", "carrot", "broccoli",
+    "cauliflower", "cabbage", "lettuce", "spinach", "silverbeet", "puha",
+    "capsicum", "courgette", "zucchini", "pumpkin", "onion", "garlic",
+    "ginger", "mushroom", "cucumber", "celery", "leek", "green bean",
+    "sweetcorn", "lemon", "lime", "grape", "strawberr", "blueberr",
+    "raspberr", "peach", "pear", "plum", "mandarin", "melon", "mango",
+    "pineapple", "parsley", "coriander", "basil", "mint", "chilli", "salad",
+    "kale", "rocket", "beetroot", "radish", "asparagus", "herb", "greens",
+    "sprout", "watercress", "avo", "veges", "veggies", "vegetables",
+    "fruit", "pak choi", "bok choy", "spring onion", "shallot", "swede",
+    "parsnip", "turnip", "eggplant", "aubergine", "fennel", "artichoke",
+    "snow pea", "snap pea", "brussels", "microgreen", "bean sprout", "yam",
+    "nectarine", "apricot", "cherry", "cherries", "fig", "passionfruit",
+    "persimmon", "blackberr", "cranberr", "pomegranate", "rhubarb",
+    "grapefruit", "guava", "papaya", "dragonfruit", "lychee", "thyme",
+    "rosemary", "onions", "spuds", "produce", "fresh fruit", "salad mix"
+  ],
+  "Meat & Seafood": [
+    "chicken", "beef", "mince", "steak", "lamb", "pork", "bacon", "ham",
+    "sausage", "salami", "turkey", "venison", "fish", "salmon", "snapper",
+    "terakihi", "hoki", "prawn", "shrimp", "mussel", "squid", "calamari",
+    "chorizo", "schnitzel", "drumstick", "thigh", "meat", "seafood",
+    "tuna steak", "brisket", "sirloin", "rib eye", "ribeye",
+    "scotch fillet", "eye fillet", "rump", "cutlet", "wings", "breast",
+    "tenderloin", "meatball", "patty", "pattie", "ribs", "roast", "kransky",
+    "bratwurst", "luncheon", "pastrami", "prosciutto", "pepperoni",
+    "chipolata", "black pudding", "duck", "goat", "hogget", "mutton",
+    "oyster", "scallop", "crayfish", "whitebait", "kahawai", "gurnard",
+    "blue cod", "john dory", "kingfish", "sardine", "anchovy", "crab",
+    "lobster", "fillet", "smoked salmon", "marinara", "paua"
+  ],
+  "Dairy & Chilled": [
+    "milk", "cheese", "yoghurt", "yogurt", "butter", "cream", "egg", "feta",
+    "halloumi", "mozzarella", "parmesan", "custard", "margarine", "hummus",
+    "tofu", "dip", "sour cream", "cream cheese", "cottage cheese",
+    "cheddar", "colby", "edam", "tasty", "brie", "camembert", "blue cheese",
+    "ricotta", "mascarpone", "kefir", "buttermilk", "creme fraiche",
+    "quark", "skyr", "cheese slice", "grated cheese", "block of cheese",
+    "oat milk", "almond milk", "soy milk", "rice milk", "cashew milk",
+    "trim milk", "blue top", "green top", "light blue", "chocolate milk",
+    "lactose free", "a2 milk", "uht", "anchor", "mainland", "meadow fresh",
+    "puhoi", "lewis road", "kapiti", "primo", "yoplait", "fresh n fruity",
+    "de winkel", "tzatziki", "guacamole", "fresh pasta", "gnocchi",
+    "sauerkraut", "kimchi", "cooked chicken", "coleslaw"
+  ],
+  "Pantry & Baking": [
+    "rice", "pasta", "noodle", "flour", "sugar", "oat", "weet-bix",
+    "weetbix", "cereal", "muesli", "bread", "wrap", "tortilla", "bun",
+    "bagel", "chickpea", "lentil", "tomato paste", "sauce", "ketchup",
+    "mayo", "mustard", "vinegar", "oil", "salt", "pepper", "spice", "cumin",
+    "cinnamon", "curry", "stock", "honey", "jam", "marmite", "vegemite",
+    "peanut butter", "cocoa", "baking powder", "baking soda", "yeast",
+    "vanilla", "choc chip", "chocolate chip", "protein powder", "almond",
+    "walnut", "cashew", "nuts", "seed", "tahini", "coconut", "syrup", "tea",
+    "coffee", "sultana", "raisin", "breadcrumb", "couscous", "quinoa",
+    "soup", "baked bean", "tinned", "canned", "nutella", "hazelnut spread",
+    "spread", "edmonds", "chelsea", "wattie", "heinz", "sanitarium",
+    "hubbards", "ceres", "pams", "gregg", "hansells", "maggi",
+    "continental", "uncle ben", "trident", "macaroni", "spaghetti",
+    "lasagne", "risotto", "polenta", "semolina", "cornflour", "basmati",
+    "jasmine rice", "arborio", "sushi rice", "brown rice", "ramen", "udon",
+    "vermicelli", "rice noodle", "penne", "fettuccine", "farfalle",
+    "icing sugar", "brown sugar", "caster sugar", "condensed milk",
+    "evaporated milk", "golden syrup", "custard powder", "jelly",
+    "gelatine", "cake mix", "muffin mix", "pancake", "self raising",
+    "self-raising", "corn syrup", "maple syrup", "food colouring",
+    "sprinkles", "desiccated", "choc melts", "chutney", "relish", "pickle",
+    "gherkin", "olive", "caper", "passata", "soy sauce", "fish sauce",
+    "oyster sauce", "worcestershire", "sriracha", "tabasco", "hoisin",
+    "teriyaki", "marinade", "dressing", "balsamic", "aioli", "pesto",
+    "salsa", "satay", "gravy", "stock cube", "bovril", "porridge",
+    "granola", "corn flakes", "cornflakes", "rice bubbles", "milo",
+    "ovaltine", "hot chocolate", "drinking chocolate", "tea bag",
+    "instant coffee", "coffee bean", "plunger", "manuka", "marmalade",
+    "almond butter", "golden oat", "pita", "naan", "croissant", "crumpet",
+    "english muffin", "roti", "ciabatta", "sourdough", "focaccia",
+    "burger bun", "hot dog roll", "kidney bean", "black bean",
+    "butter bean", "cannellini", "borlotti", "sweetcorn tin", "tuna tin",
+    "tinned tuna", "creamed corn", "beetroot tin", "split pea", "barley",
+    "chia", "flaxseed", "linseed", "sunflower seed", "pumpkin seed",
+    "sesame", "paprika", "turmeric", "cardamom", "nutmeg", "bay leaf",
+    "stock powder", "yeast extract"
+  ],
+  "Frozen": [
+    "frozen", "ice cream", "icecream", "ice block", "gelato", "sorbet",
+    "fish finger", "chicken nugget", "hash brown", "potato gem", "wedges",
+    "pizza", "dumpling", "gyoza", "spring roll", "puff pastry", "filo",
+    "pastry sheet", "flaky pastry", "ice-cream", "choc bar", "trumpet",
+    "magnum", "tip top", "kapiti ice", "popsicle", "frozen berr",
+    "frozen veg", "frozen pea", "party food", "sausage roll"
+  ],
+  "Snacks & Drinks": [
+    "chocolate", "chips", "crisps", "biscuit", "cookie", "lolly", "lollies",
+    "candy", "whittaker", "l&p", "coke", "soft drink", "fizzy", "juice",
+    "water", "beer", "wine", "cider", "energy drink", "powerade", "gum",
+    "popcorn", "cracker", "muesli bar", "protein bar", "snack", "chippies",
+    "nut bar", "scroggin", "trail mix", "pretzel", "corn chip", "dorito",
+    "bluebird", "cookie time", "griffin", "arnott", "tim tam", "gingernut",
+    "shortbread", "licorice", "liquorice", "pineapple lump", "jaffa",
+    "mintie", "mallowpuff", "squiggle", "chocolate fish", "marshmallow",
+    "toffee", "fudge", "hokey pokey", "rice cake", "corn thin", "cruskit",
+    "salt and vinegar", "ready salted", "lemonade", "ginger beer",
+    "ginger ale", "tonic", "soda water", "sparkling water", "kombucha",
+    "cordial", "iced tea", "smoothie", "milkshake", "sports drink",
+    "gatorade", "red bull", "sprite", "fanta", "pepsi", "charlie",
+    "just juice", "keri", "phoenix", "sauvignon", "pinot", "merlot",
+    "chardonnay", "rose wine", "prosecco", "champagne", "lager", "ipa",
+    "steinlager", "speight", "monteith", "heineken", "corona", "whisky",
+    "vodka", "bourbon", "cruiser"
+  ],
+  "Household": [
+    "toilet paper", "paper towel", "dishwash", "detergent",
+    "washing powder", "soap", "shampoo", "conditioner", "toothpaste",
+    "toothbrush", "deodorant", "sunscreen", "cleaner", "bin liner",
+    "rubbish bag", "tissue", "wipes", "sponge", "glad wrap", "tin foil",
+    "batteries", "razor", "floss", "laundry", "bleach", "sanitiser",
+    "sanitizer", "dishwasher tablet", "fabric softener", "stain remover",
+    "disinfectant", "spray n wipe", "surface spray", "oven cleaner",
+    "drain", "scourer", "dish cloth", "tea towel", "clothes peg",
+    "coat hanger", "vacuum bag", "mop", "air freshener", "fly spray",
+    "insect", "mothball", "hand wash", "handwash", "body wash",
+    "shower gel", "moisturis", "moisturiz", "sunblock", "shaving",
+    "cotton bud", "cotton wool", "nail", "hair spray", "hair gel",
+    "mouthwash", "lip balm", "band aid", "bandaid", "plaster", "panadol",
+    "paracetamol", "ibuprofen", "nurofen", "vitamin", "supplement",
+    "throat lozenge", "cough", "antiseptic", "sanitary", "tampon", "nappy",
+    "baby wipe", "dog food", "cat food", "pet food", "cat litter",
+    "bird seed", "light bulb", "candle", "matches", "lighter", "zip lock",
+    "ziploc", "cling film", "baking paper", "rubbish sack", "recycling bag",
+    "aluminium foil", "storage bag", "freezer bag"
+  ]
 };
 
 function guessCategory(rawName) {
@@ -630,12 +789,53 @@ function startShopping() { state.mode = 'shop'; saveState(); render(); }
 function backToPlan() { state.mode = 'plan'; saveState(); render(); }
 function resetSelections() { state.selected = {}; saveState(); render(); }
 
+/* The list as plain text, for sending to someone who does not have the
+   app. Sections in shopping order, same as on screen. */
+function listAsText() {
+  const items = allItems().filter(it => state.selected[it.id]);
+  if (!items.length) return '';
+  const bySection = itemsBySection(items);
+  const lines = ["Chris's list — " + items.length + " item" + (items.length === 1 ? '' : 's'), ''];
+  SECTION_ORDER.forEach(secName => {
+    const secItems = bySection[secName];
+    if (!secItems || !secItems.length) return;
+    lines.push(secName.toUpperCase());
+    secItems.forEach(it => {
+      lines.push('- ' + it.name + (it.note ? ' (' + it.note + ')' : ''));
+    });
+    lines.push('');
+  });
+  return lines.join(String.fromCharCode(10)).trim();
+}
+
+/* Hand it to the phone's own share sheet where there is one, otherwise
+   fall back to the clipboard. Both are absent on some desktop browsers,
+   so say so rather than appearing to do nothing. */
+function shareList() {
+  const text = listAsText();
+  if (!text) { showToast('Nothing ticked yet', null); return; }
+  if (navigator.share) {
+    navigator.share({ title: "Chris's list", text: text }).catch(() => {});
+    return;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('List copied — paste it into a message', null))
+      .catch(() => showToast('Could not copy the list', null));
+    return;
+  }
+  showToast('Sharing is not available on this browser', null);
+}
+
 function render() {
   const main = document.getElementById('main');
   const title = document.getElementById('pageTitle');
   const subtitle = document.getElementById('pageSubtitle');
   const bar = document.getElementById('bottomBar');
   main.innerHTML = '';
+
+  document.getElementById('shareBtn').hidden =
+    Object.keys(state.selected).length === 0;
 
   if (state.mode === 'plan') {
     title.textContent = "Chris's Shopping List 🌿";
@@ -760,6 +960,7 @@ function render() {
   }
 }
 
+document.getElementById('shareBtn').onclick = shareList;
 render();
 pullRemote();
 startSyncWatchers();
