@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chris's List">
+<meta name="theme-color" content="#2d6a4f">
+<meta name="robots" content="noindex, nofollow">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Chris's shopping list — works offline once installed.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>Chris's Shopping List 🌿</title>
+<style>
+  :root {
+    --bg-top: #f4f7f0;
+    --bg-bottom: #e2ece1;
+    --card: #ffffff;
+    --text: #1f3323;
+    --muted: #6b7f6e;
+    --border: #d7e2d5;
+    --accent: #2d6a4f;
+    --accent2: #2a6f97;
+    --tussock: #c9a227;
+    --accent-text: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-top: #16211a;
+      --bg-bottom: #101812;
+      --card: #1e2c22;
+      --text: #e6f0e4;
+      --muted: #91a894;
+      --border: #2f4235;
+      --accent: #52b788;
+      --accent2: #61a5c2;
+      --tussock: #e0b83a;
+      --accent-text: #10180f;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    background-attachment: fixed;
+    color: var(--text);
+    padding-bottom: 110px;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(180deg, var(--bg-top) 80%, transparent);
+    padding: 20px 18px 10px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.4rem;
+    margin: 0 0 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 800;
+  }
+  .subtitle { color: var(--muted); font-size: 0.85rem; }
+  main { padding: 12px 16px 16px; max-width: 640px; margin: 0 auto; }
+  .section { margin-bottom: 20px; }
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 8px 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 6px 16px rgba(31, 51, 35, 0.08);
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 8px 13px 14px;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .item:last-child { border-bottom: none; }
+  .tap-zone {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .tap-zone:active { opacity: 0.6; }
+  .box {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    border-radius: 8px;
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--accent-text);
+  }
+  .item.checked .box { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: transparent; }
+  .item-text { flex: 1; min-width: 0; }
+  .item-name { font-size: 1rem; font-weight: 600; }
+  .item-note { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+  .del-btn {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: 1.2rem;
+    line-height: 1;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .del-btn:active { background: rgba(150,60,40,0.12); color: #b3422e; }
+  .shop .item { padding: 15px 14px; cursor: pointer; }
+  .item.removing { opacity: 0; transform: scale(0.95); }
+  .empty-msg {
+    text-align: center;
+    color: var(--muted);
+    padding: 50px 16px;
+    font-size: 1rem;
+  }
+  .add-row { display: flex; gap: 8px; margin-top: 4px; }
+  .add-row input {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 1rem;
+  }
+  .add-row button {
+    width: 46px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: var(--accent-text);
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+  .hint { font-size: 0.75rem; color: var(--muted); margin: 6px 0 0 12px; }
+  .restore-btn {
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    padding: 11px;
+    border-radius: 999px;
+    border: 1px dashed var(--border);
+    background: none;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--bg-bottom);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+  }
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 999px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--accent-text); box-shadow: 0 4px 14px rgba(45,106,79,0.3); }
+  .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  .btn:disabled { opacity: 0.4; box-shadow: none; }
+  .toast {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 86px;
+    background: var(--text);
+    color: var(--bg-top);
+    padding: 12px 18px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    z-index: 20;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+  }
+  .toast span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .toast button { background: none; border: none; color: var(--bg-top); font-weight: 800; font-size: 0.9rem; flex-shrink: 0; }
+  .count-pill {
+    display: inline-block;
+    background: var(--tussock);
+    color: #1f3323;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  /* Shows only while this phone is holding changes the cloud has not
+     received yet. Normally invisible. */
+  #syncNote {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-16px);
+    max-width: min(92vw, 430px);
+    padding: 7px 15px;
+    border-radius: 999px;
+    background: #1f3323;
+    color: #f4f7f0;
+    font-size: 12.5px;
+    line-height: 1.35;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,.22);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+    z-index: 60;
+  }
+  #syncNote.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #syncNote { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="pageTitle">Chris's Shopping List 🌿</h1>
+  <div class="subtitle" id="pageSubtitle">Tick what you need, then go shopping</div>
+</header>
+
+<noscript>
+  <div style="max-width:640px;margin:16px auto;padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--border);color:var(--text);">
+    <strong>This needs JavaScript to show your list.</strong><br>
+    If you opened this from a chat app's built-in preview, it blocks scripts. Open it in a real browser (Safari/Chrome) instead.
+  </div>
+</noscript>
+
+<main id="main"></main>
+
+<div id="toastHost"></div>
+<div id="syncNote">Saved on this phone. It will sync when you are back online.</div>
+
+<div class="bottom-bar" id="bottomBar"></div>
+
+<script>
+const STORAGE_KEY = 'groceryAppStateNZ_v1';
+
+/* ---- Categories (also used for auto-sorting new items) ---- */
+const CATEGORIES = [
+  { name: "Produce", icon: "🥦" },
+  { name: "Meat & Seafood", icon: "🍗" },
+  { name: "Dairy & Chilled", icon: "🥛" },
+  { name: "Pantry & Baking", icon: "🥫" },
+  { name: "Frozen", icon: "🧊" },
+  { name: "Snacks & Drinks", icon: "🍫" },
+  { name: "Household", icon: "🧻" },
+  { name: "Other", icon: "🛒" }
+];
+
+/* ---- Small starter list — add your own, that's the point ---- */
+const STARTER = [
+  ["Kumara", "", "Produce"],
+  ["Broccoli", "", "Produce"],
+  ["Capsicum", "", "Produce"],
+  ["Baby spinach", "", "Produce"],
+  ["Onions", "", "Produce"],
+  ["Bananas", "", "Produce"],
+  ["Chicken breast", "", "Meat & Seafood"],
+  ["Beef mince", "", "Meat & Seafood"],
+  ["Eggs", "dozen", "Dairy & Chilled"],
+  ["Milk", "2L", "Dairy & Chilled"],
+  ["Greek yoghurt", "", "Dairy & Chilled"],
+  ["Tasty cheese", "", "Dairy & Chilled"],
+  ["Chickpeas", "cans or dried", "Pantry & Baking"],
+  ["Rolled oats", "", "Pantry & Baking"],
+  ["Weet-Bix", "", "Pantry & Baking"],
+  ["Rice", "", "Pantry & Baking"],
+  ["Wholegrain bread", "", "Pantry & Baking"],
+  ["Peanut butter", "", "Pantry & Baking"],
+  ["Canned tomatoes", "", "Pantry & Baking"],
+  ["Olive oil", "", "Pantry & Baking"],
+  ["Protein powder", "", "Pantry & Baking"],
+  ["Cocoa powder", "for brownies", "Pantry & Baking"],
+  ["Dark chocolate", "for brownies", "Pantry & Baking"],
+  ["Flour", "", "Pantry & Baking"],
+  ["Frozen mixed veg", "", "Frozen"],
+  ["Frozen berries", "", "Frozen"],
+  ["Dishwash liquid", "", "Household"],
+  ["Toilet paper", "", "Household"]
+];
+
+/* ---- Auto-categorisation keywords (NZ-aware) ---- */
+const KEYWORDS = {
+  "Produce": ["apple","banana","orange","kiwifruit","feijoa","tamarillo","avocado","tomato","potato","kumara","carrot","broccoli","cauliflower","cabbage","lettuce","spinach","silverbeet","puha","capsicum","courgette","zucchini","pumpkin","onion","garlic","ginger","mushroom","cucumber","celery","leek","green bean","sweetcorn","lemon","lime","grape","strawberr","blueberr","raspberr","peach","pear","plum","mandarin","melon","mango","pineapple","parsley","coriander","basil","mint","chilli","salad","kale","rocket","beetroot","radish","asparagus","herb","greens","sprout","watercress","avo","veges","veggies","vegetables","fruit"],
+  "Meat & Seafood": ["chicken","beef","mince","steak","lamb","pork","bacon","ham","sausage","salami","turkey","venison","fish","salmon","snapper","terakihi","hoki","prawn","shrimp","mussel","squid","calamari","chorizo","schnitzel","drumstick","thigh","meat","seafood","tuna steak"],
+  "Dairy & Chilled": ["milk","cheese","yoghurt","yogurt","butter","cream","egg","feta","halloumi","mozzarella","parmesan","custard","margarine","hummus","tofu","dip"],
+  "Pantry & Baking": ["rice","pasta","noodle","flour","sugar","oat","weet-bix","weetbix","cereal","muesli","bread","wrap","tortilla","bun","bagel","chickpea","lentil","tomato paste","sauce","ketchup","mayo","mustard","vinegar","oil","salt","pepper","spice","cumin","cinnamon","curry","stock","honey","jam","marmite","vegemite","peanut butter","cocoa","baking powder","baking soda","yeast","vanilla","choc chip","chocolate chip","protein powder","almond","walnut","cashew","nuts","seed","tahini","coconut","syrup","tea","coffee","sultana","raisin","breadcrumb","couscous","quinoa","soup","baked bean","tinned","canned"],
+  "Frozen": ["frozen","ice cream","icecream","ice block"],
+  "Snacks & Drinks": ["chocolate","chips","crisps","biscuit","cookie","lolly","lollies","candy","whittaker","l&p","coke","soft drink","fizzy","juice","water","beer","wine","cider","energy drink","powerade","gum","popcorn","cracker","muesli bar","protein bar","snack","chippies"],
+  "Household": ["toilet paper","paper towel","dishwash","detergent","washing powder","soap","shampoo","conditioner","toothpaste","toothbrush","deodorant","sunscreen","cleaner","bin liner","rubbish bag","tissue","wipes","sponge","glad wrap","tin foil","batteries","razor","floss","laundry","bleach","sanitiser","sanitizer","dishwasher tablet"]
+};
+
+function guessCategory(rawName) {
+  const name = rawName.toLowerCase().trim();
+  // Strong signals first — these beat any other word in the name
+  if (/\bfrozen\b/.test(name)) return "Frozen";
+  if (/\b(canned|tinned|can of|tin of)\b/.test(name)) return "Pantry & Baking";
+  // Otherwise: longest matching keyword wins
+  let best = null, bestLen = 0;
+  for (const cat in KEYWORDS) {
+    for (const kw of KEYWORDS[cat]) {
+      if (name.includes(kw) && kw.length > bestLen) { best = cat; bestLen = kw.length; }
+    }
+  }
+  return best || "Other";
+}
+
+function slugify(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+const MASTER_ITEMS = STARTER.map(([name, note, section]) => ({
+  id: 'd-' + slugify(section) + '-' + slugify(name), name, note: note || '', section
+}));
+
+const SECTION_ICON = {};
+CATEGORIES.forEach(c => { SECTION_ICON[c.name] = c.icon; });
+const SECTION_ORDER = CATEGORIES.map(c => c.name);
+
+function normaliseState(s) {
+  s = (s && typeof s === 'object') ? s : {};
+  s.selected    = s.selected    || {};
+  s.customItems = s.customItems || [];
+  s.hidden      = s.hidden      || {};
+  s.mode        = s.mode === 'shop' ? 'shop' : 'plan';
+  s.lastRemoved = s.lastRemoved || null;
+  s.lastDeleted = s.lastDeleted || null;
+  delete s.index;              /* rebuilt on the way out, never kept */
+  /* Anything added from outside the app - by Claude, say - arrives with
+     no section. Work it out here, so the guessing stays in one place. */
+  s.customItems.forEach(function (it) {
+    if (it && !it.section) it.section = guessCategory(it.name || '');
+  });
+  return s;
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return normaliseState(JSON.parse(raw));
+  } catch (e) {}
+  return normaliseState({});
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  queuePush();
+}
+
+let state = loadState();
+
+/* ---- Cloud sync -------------------------------------------------
+   The phone stays in charge. Every change is written to this phone
+   first, so nothing ever waits on the internet and the app still works
+   with none at all. A copy is then pushed up to the list's home in the
+   cloud, and that copy is what lets Claude read and add to this list
+   while you are out.
+
+   Until the two values below are filled in, this whole section sits
+   idle and the app behaves exactly as it always has: this phone only. */
+const SYNC = {
+  url:    'PASTE_PROJECT_URL_HERE',   /* https://xxxxxxxx.supabase.co */
+  key:    'PASTE_ANON_KEY_HERE',      /* the long public key          */
+  listId: 'chris',
+  secret: 'XI9a3-SXMtAiHDsuWythvhtxSODOBA5t'
+};
+
+const SYNCED_AT_KEY = STORAGE_KEY + '_syncedAt';
+
+let syncDirty    = false;  /* this phone holds changes the cloud has not got */
+let syncBusy     = false;  /* a request is in flight */
+let syncTimer    = null;
+let stateVersion = 0;
+
+function syncOn() {
+  return SYNC.url.indexOf('PASTE_') === -1 && SYNC.key.indexOf('PASTE_') === -1;
+}
+
+function remember(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) {}
+}
+
+function rpc(fn, body) {
+  return fetch(SYNC.url + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SYNC.key,
+      'Authorization': 'Bearer ' + SYNC.key
+    },
+    body: JSON.stringify(body)
+  }).then(function (res) {
+    if (!res.ok) throw new Error('sync failed: ' + res.status);
+    return res.json();
+  });
+}
+
+/* What actually goes up. Item names live in this file, not in the
+   database, so the cloud copy would otherwise be a list of codes that
+   nothing else could read. The index makes it stand on its own, which
+   is what lets Claude tell you what is on the list. */
+function syncPayload() {
+  const payload = {
+    mode:        state.mode,
+    selected:    state.selected,
+    customItems: state.customItems,
+    hidden:      state.hidden,
+    index:       {}
+  };
+  allItems().forEach(function (it) {
+    payload.index[it.id] = { name: it.name, section: it.section };
+  });
+  return payload;
+}
+
+/* Save up, after a short pause so a burst of taps makes one trip. */
+function queuePush() {
+  if (!syncOn()) return;
+  syncDirty = true;
+  stateVersion++;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushRemote, 1200);
+}
+
+function pushRemote() {
+  if (!syncOn() || syncBusy) return;
+  syncBusy = true;
+  const sentVersion = stateVersion;
+  rpc('list_put', { p_id: SYNC.listId, p_secret: SYNC.secret, p_state: syncPayload() })
+    .then(function (stamp) {
+      remember(SYNCED_AT_KEY, stamp);
+      if (sentVersion === stateVersion) syncDirty = false;
+      syncBusy = false;
+      showSyncNote(false);
+      if (syncDirty) queuePush();          /* changed again mid-send */
+    }, function () {
+      syncDirty = true;
+      syncBusy  = false;                   /* retry on the next save or reconnect */
+      showSyncNote(true);
+    });
+}
+
+/* Take the cloud copy, unless this phone is holding changes that have
+   not gone up yet - then this phone wins and we send instead. Whoever
+   saved last is the one that sticks. */
+function pullRemote() {
+  if (!syncOn() || syncBusy) return;
+  if (syncDirty) { pushRemote(); return; }
+  syncBusy = true;
+  rpc('list_get', { p_id: SYNC.listId, p_secret: SYNC.secret })
+    .then(function (row) {
+      const stamp = row && row.updated_at;
+      if (!stamp || stamp === localStorage.getItem(SYNCED_AT_KEY)) return;
+      if (!row.state || !Object.keys(row.state).length) return;
+      state = normaliseState(row.state);
+      remember(STORAGE_KEY, JSON.stringify(state));
+      remember(SYNCED_AT_KEY, stamp);
+      render();
+    })
+    .then(function () { syncBusy = false; showSyncNote(false); },
+          function () { syncBusy = false; showSyncNote(true);  });
+}
+
+/* A quiet note, and only when the cloud copy is genuinely behind.
+   Silence means everything is in step - nothing new to learn. */
+function showSyncNote(trouble) {
+  const el = document.getElementById('syncNote');
+  if (!el) return;
+  if (trouble && syncDirty) el.classList.add('show');
+  else el.classList.remove('show');
+}
+
+function startSyncWatchers() {
+  if (!syncOn()) return;
+  window.addEventListener('online', pullRemote);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) pullRemote();
+  });
+}
+
+function allItems() {
+  return MASTER_ITEMS.concat(state.customItems || []).filter(it => !state.hidden[it.id]);
+}
+
+function itemsBySection(list) {
+  const map = {};
+  list.forEach(it => {
+    if (!map[it.section]) map[it.section] = [];
+    map[it.section].push(it);
+  });
+  return map;
+}
+
+function toggleSelect(id) {
+  if (state.selected[id]) delete state.selected[id];
+  else state.selected[id] = true;
+  saveState();
+  render();
+}
+
+/* ---- Permanently hide an item from the list (reversible) ---- */
+function deleteItem(id, name) {
+  state.hidden[id] = true;
+  delete state.selected[id];
+  state.lastDeleted = { id, name };
+  saveState();
+  render();
+  showToast('Deleted: ' + name, undoDelete);
+}
+
+function undoDelete() {
+  if (!state.lastDeleted) return;
+  delete state.hidden[state.lastDeleted.id];
+  state.lastDeleted = null;
+  saveState();
+  render();
+}
+
+function restoreAllHidden() {
+  state.hidden = {};
+  state.lastDeleted = null;
+  saveState();
+  render();
+}
+
+/* ---- Tick off while shopping ---- */
+function pickUpItem(id, name) {
+  const el = document.querySelector('[data-id="' + CSS.escape(id) + '"]');
+  const finish = () => {
+    delete state.selected[id];
+    state.lastRemoved = { id, name };
+    saveState();
+    render();
+    showToast('Got it: ' + name, undoPickUp);
+  };
+  if (el) {
+    el.classList.add('removing');
+    setTimeout(finish, 140);
+  } else {
+    finish();
+  }
+}
+
+function undoPickUp() {
+  if (!state.lastRemoved) return;
+  state.selected[state.lastRemoved.id] = true;
+  state.lastRemoved = null;
+  saveState();
+  render();
+}
+
+function showToast(msg, undoFn) {
+  const host = document.getElementById('toastHost');
+  host.innerHTML = '<div class="toast"><span>' + escapeHtml(msg) + '</span>' +
+    (undoFn ? '<button id="toastUndo">UNDO</button>' : '') + '</div>';
+  if (undoFn) {
+    document.getElementById('toastUndo').onclick = () => {
+      undoFn();
+      host.innerHTML = '';
+    };
+  }
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => { host.innerHTML = ''; }, 4000);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function addCustomItem() {
+  const input = document.getElementById('customInput');
+  const name = input.value.trim();
+  if (!name) return;
+  const section = guessCategory(name);
+  const id = 'c-' + Date.now();
+  state.customItems.push({ id, name, note: '', section });
+  state.selected[id] = true;
+  input.value = '';
+  saveState();
+  render();
+  showToast('Added to ' + section, null);
+}
+
+function startShopping() { state.mode = 'shop'; saveState(); render(); }
+function backToPlan() { state.mode = 'plan'; saveState(); render(); }
+function resetSelections() { state.selected = {}; saveState(); render(); }
+
+function render() {
+  const main = document.getElementById('main');
+  const title = document.getElementById('pageTitle');
+  const subtitle = document.getElementById('pageSubtitle');
+  const bar = document.getElementById('bottomBar');
+  main.innerHTML = '';
+
+  if (state.mode === 'plan') {
+    title.textContent = "Chris's Shopping List 🌿";
+    const count = Object.keys(state.selected).length;
+    subtitle.textContent = count ? count + ' item' + (count === 1 ? '' : 's') + ' on the list' : 'Tick what you need, then go shopping';
+
+    const bySection = itemsBySection(allItems());
+    SECTION_ORDER.forEach(secName => {
+      const secItems = bySection[secName];
+      if (!secItems || !secItems.length) return;
+      const sec = document.createElement('div');
+      sec.className = 'section';
+      const checkedInSec = secItems.filter(it => state.selected[it.id]).length;
+      sec.innerHTML = '<div class="section-title">' + (SECTION_ICON[secName] || '') + ' ' + escapeHtml(secName) +
+        (checkedInSec ? ' <span class="count-pill">' + checkedInSec + '</span>' : '') + '</div>';
+      const card = document.createElement('div');
+      card.className = 'card';
+      secItems.forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'item' + (state.selected[it.id] ? ' checked' : '');
+        row.setAttribute('data-id', it.id);
+
+        const tap = document.createElement('div');
+        tap.className = 'tap-zone';
+        tap.innerHTML = '<div class="box">' + (state.selected[it.id] ? '✓' : '') + '</div>' +
+          '<div class="item-text"><div class="item-name">' + escapeHtml(it.name) + '</div>' +
+          (it.note ? '<div class="item-note">' + escapeHtml(it.note) + '</div>' : '') + '</div>';
+        tap.onclick = () => toggleSelect(it.id);
+
+        const del = document.createElement('button');
+        del.className = 'del-btn';
+        del.innerHTML = '&times;';
+        del.setAttribute('aria-label', 'Delete ' + it.name);
+        del.onclick = (e) => { e.stopPropagation(); deleteItem(it.id, it.name); };
+
+        row.appendChild(tap);
+        row.appendChild(del);
+        card.appendChild(row);
+      });
+      sec.appendChild(card);
+      main.appendChild(sec);
+    });
+
+    const addSec = document.createElement('div');
+    addSec.className = 'section';
+    addSec.innerHTML = '<div class="section-title">➕ Add an item</div>' +
+      '<div class="add-row"><input id="customInput" type="text" placeholder="e.g. hoki fillets, Marmite, courgettes" /><button onclick="addCustomItem()" aria-label="Add">+</button></div>' +
+      '<div class="hint">New items sort themselves into the right section automatically.</div>';
+    main.appendChild(addSec);
+    document.getElementById('customInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addCustomItem();
+    });
+
+    const hiddenCount = Object.keys(state.hidden).length;
+    if (hiddenCount) {
+      const restore = document.createElement('button');
+      restore.className = 'restore-btn';
+      restore.textContent = '↩ Restore ' + hiddenCount + ' deleted item' + (hiddenCount === 1 ? '' : 's');
+      restore.onclick = restoreAllHidden;
+      main.appendChild(restore);
+    }
+
+    bar.innerHTML = '';
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'btn btn-secondary';
+    resetBtn.textContent = 'Clear ticks';
+    resetBtn.onclick = resetSelections;
+    const startBtn = document.createElement('button');
+    startBtn.className = 'btn btn-primary';
+    startBtn.textContent = count ? 'Start shopping (' + count + ')' : 'Start shopping';
+    startBtn.disabled = !count;
+    startBtn.onclick = startShopping;
+    bar.appendChild(resetBtn);
+    bar.appendChild(startBtn);
+
+  } else {
+    const items = allItems().filter(it => state.selected[it.id]);
+    const remaining = items.length;
+    title.textContent = 'Shopping 🛒';
+    subtitle.textContent = remaining ? remaining + ' item' + (remaining === 1 ? '' : 's') + ' left — tap when it\'s in the trolley' : 'All done!';
+
+    if (!remaining) {
+      main.innerHTML = '<div class="empty-msg">✅ Everything\'s in the trolley.</div>';
+    } else {
+      const bySection = itemsBySection(items);
+      SECTION_ORDER.forEach(secName => {
+        const secItems = bySection[secName];
+        if (!secItems || !secItems.length) return;
+        const sec = document.createElement('div');
+        sec.className = 'section';
+        sec.innerHTML = '<div class="section-title">' + (SECTION_ICON[secName] || '') + ' ' + escapeHtml(secName) + '</div>';
+        const card = document.createElement('div');
+        card.className = 'card shop';
+        secItems.forEach(it => {
+          const row = document.createElement('div');
+          row.className = 'item';
+          row.setAttribute('data-id', it.id);
+          row.innerHTML = '<div class="box"></div>' +
+            '<div class="item-text"><div class="item-name">' + escapeHtml(it.name) + '</div>' +
+            (it.note ? '<div class="item-note">' + escapeHtml(it.note) + '</div>' : '') + '</div>';
+          row.onclick = () => pickUpItem(it.id, it.name);
+          card.appendChild(row);
+        });
+        sec.appendChild(card);
+        main.appendChild(sec);
+      });
+    }
+
+    bar.innerHTML = '';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-secondary';
+    editBtn.textContent = 'Edit list';
+    editBtn.onclick = backToPlan;
+    bar.appendChild(editBtn);
+    if (!remaining) {
+      const doneBtn = document.createElement('button');
+      doneBtn.className = 'btn btn-primary';
+      doneBtn.textContent = 'New trip';
+      doneBtn.onclick = () => { state.selected = {}; state.mode = 'plan'; saveState(); render(); };
+      bar.appendChild(doneBtn);
+    }
+  }
+}
+
+render();
+pullRemote();
+startSyncWatchers();
+
+/* ---- Offline support: register the service worker ---- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {
+      /* No offline caching available - the app still works normally. */
+    });
+  });
+}
+</script>
+</body>
+</html>
